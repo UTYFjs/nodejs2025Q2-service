@@ -1,26 +1,70 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { DbService } from 'src/db/db.service';
+import { v4 as uuidv4 } from 'uuid';
+import { UserConstants } from 'src/constants/constants';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(private readonly dbService: DbService) {}
+  create(dto: CreateUserDto) {
+    const newUser = {
+      id: uuidv4(),
+      login: dto.login,
+      password: dto.password,
+      version: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    const createdUser = this.dbService.createUser(newUser);
+    return createdUser;
   }
 
   findAll() {
-    return `This action returns all users`;
+    return this.dbService.findAllUsers();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: string) {
+    const user = this.dbService.findOneUser(id);
+    if (!user) {
+      return null;
+      //return 'Hello , no user';
+    }
+    return user;
+    //return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(id: string, updateUserDto: UpdateUserDto) {
+    const user = this.dbService.findOneUser(id);
+    if (!user) {
+      throw new NotFoundException(UserConstants.NOT_FOUND_MESSAGE);
+    }
+    if (user.password !== updateUserDto.oldPassword) {
+      throw new ForbiddenException(UserConstants.FORBIDDEN_MESSAGE);
+    }
+    const updatedUser = this.dbService.updateUser(id, updateUserDto);
+    if (!updatedUser) {
+      throw new InternalServerErrorException('somethig went wrong');
+    }
+    return updatedUser;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string) {
+    const user = this.dbService.findOneUser(id);
+    if (!user) {
+      throw new NotFoundException(UserConstants.NOT_FOUND_MESSAGE);
+    }
+
+    const isRemove = this.dbService.removeUser(id);
+    if (!isRemove) {
+      throw new InternalServerErrorException('somethig went wrong');
+    }
+    return;
   }
 }
