@@ -1,16 +1,26 @@
 import {
   Injectable,
+  Inject,
   InternalServerErrorException,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { DbService } from 'src/db/db.service';
+import { FavsService } from 'src/favs/favs.service';
+import { TracksService } from 'src/tracks/tracks.service';
 import { AlbumConstants } from 'src/constants/constants';
 
 @Injectable()
 export class AlbumsService {
-  constructor(private readonly db: DbService) {}
+  constructor(
+    @Inject(forwardRef(() => FavsService))
+    @Inject(forwardRef(() => TracksService))
+    private readonly favsService: FavsService,
+    private readonly tracksService: TracksService,
+    private readonly db: DbService,
+  ) {}
   create(createAlbumDto: CreateAlbumDto) {
     const createdAlbum = this.db.createAlbum(createAlbumDto);
     return createdAlbum;
@@ -48,9 +58,9 @@ export class AlbumsService {
       throw new NotFoundException(AlbumConstants.NOT_FOUND_MESSAGE);
     }
     try {
-      // this.favsService.remove('album', id);
+      this.favsService.remove('album', id);
     } catch (err) {}
-
+    this.tracksService.removeAlbumId(id);
     const isRemoved = this.db.removeAlbum(id);
     if (!isRemoved) {
       throw new InternalServerErrorException('something went wrong');

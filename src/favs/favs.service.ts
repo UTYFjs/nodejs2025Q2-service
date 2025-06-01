@@ -15,10 +15,10 @@ import { CategoryType } from './entities/fav.entity';
 export class FavsService {
   constructor(
     @Inject(forwardRef(() => ArtistsService))
-    @Inject(forwardRef(() => AlbumsService))
-    @Inject(forwardRef(() => TracksService))
     private readonly artistService: ArtistsService,
+    @Inject(forwardRef(() => AlbumsService))
     private readonly albumService: AlbumsService,
+    @Inject(forwardRef(() => TracksService))
     private readonly trackService: TracksService,
     private readonly db: DbService,
   ) {}

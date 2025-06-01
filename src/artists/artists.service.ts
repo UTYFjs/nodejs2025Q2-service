@@ -17,10 +17,10 @@ import { ArtistConstants } from 'src/constants/constants';
 export class ArtistsService {
   constructor(
     @Inject(forwardRef(() => FavsService))
-    @Inject(forwardRef(() => AlbumsService))
-    @Inject(forwardRef(() => TracksService))
     private readonly favsService: FavsService,
+    @Inject(forwardRef(() => AlbumsService))
     private readonly albumsService: AlbumsService,
+    @Inject(forwardRef(() => TracksService))
     private readonly tracksService: TracksService,
     private readonly Db: DbService,
   ) {}
