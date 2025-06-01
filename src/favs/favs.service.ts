@@ -1,26 +1,94 @@
-import { Injectable } from '@nestjs/common';
-import { CreateFavDto } from './dto/create-fav.dto';
-import { UpdateFavDto } from './dto/update-fav.dto';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+  forwardRef,
+} from '@nestjs/common';
+import { DbService } from 'src/db/db.service';
+import { ArtistsService } from 'src/artists/artists.service';
+import { AlbumsService } from 'src/albums/albums.service';
+import { TracksService } from 'src/tracks/tracks.service';
+import { CategoryType } from './entities/fav.entity';
 
 @Injectable()
 export class FavsService {
-  create(createFavDto: CreateFavDto) {
-    return 'This action adds a new fav';
-  }
-
+  constructor(
+    @Inject(forwardRef(() => ArtistsService))
+    @Inject(forwardRef(() => AlbumsService))
+    @Inject(forwardRef(() => TracksService))
+    private readonly artistService: ArtistsService,
+    private readonly albumService: AlbumsService,
+    private readonly trackService: TracksService,
+    private readonly db: DbService,
+  ) {}
   findAll() {
-    return `This action returns all favs`;
+    const allFavsId = this.db.findAllFavsId();
+    console.log('ALL FAVS ID', allFavsId);
+    const allFavs = { artists: [], albums: [], tracks: [] };
+    for (const category in allFavsId) {
+      allFavsId[category].forEach((id) => {
+        switch (category) {
+          case 'artist':
+            const artist = this.artistService.findOne(id);
+            //console.log(artist);
+            allFavs[category + 's'].push(artist);
+            break;
+          case 'album':
+            const album = this.albumService.findOne(id);
+            allFavs[category + 's'].push(album);
+            break;
+          case 'track':
+            const track = this.trackService.findOne(id);
+            allFavs[category + 's'].push(track);
+            break;
+        }
+      });
+    }
+    return allFavs;
+  }
+  findOne(category: CategoryType, id: string) {
+    return this.db.findOneFavId(category, id);
+  }
+  createFav(category: CategoryType, id: string) {
+    const entity = this.isExistEntity(category, id);
+
+    if (!entity) {
+      throw new UnprocessableEntityException();
+    }
+
+    this.db.createFavEntity(category, id);
+    return `This ${category} added to favs`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} fav`;
+  remove(category: CategoryType, id: string) {
+    const entity = this.isExistEntity(category, id);
+    if (!entity) {
+      throw new UnprocessableEntityException();
+    }
+
+    const isRemoved = this.db.removeFav(category, id);
+    if (!isRemoved) {
+      throw new NotFoundException(`this ${category} is not favorite`);
+    }
+    return `This Item removes a #${id} fav`;
   }
 
-  update(id: number, updateFavDto: UpdateFavDto) {
-    return `This action updates a #${id} fav`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} fav`;
+  private isExistEntity(category: string, id: string) {
+    let entity;
+    switch (category) {
+      case 'artist':
+        entity = this.artistService.isExist(id);
+        break;
+      case 'album':
+        entity = this.albumService.isExist(id);
+        break;
+      case 'track':
+        entity = this.trackService.isExist(id);
+        break;
+      default:
+        entity = null;
+    }
+    return entity;
   }
 }

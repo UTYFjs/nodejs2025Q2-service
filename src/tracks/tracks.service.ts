@@ -1,26 +1,86 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { DbService } from 'src/db/db.service';
+import { FavsService } from 'src/favs/favs.service';
+import { TrackConstants } from 'src/constants/constants';
 
 @Injectable()
 export class TracksService {
+  constructor(
+    @Inject(forwardRef(() => FavsService))
+    private readonly favsService: FavsService,
+    private readonly db: DbService,
+  ) {}
   create(createTrackDto: CreateTrackDto) {
-    return 'This action adds a new track';
+    const createdTrack = this.db.createTrack(createTrackDto);
+    return createdTrack;
   }
 
   findAll() {
-    return `This action returns all tracks`;
+    const allTracks = this.db.findAllTracks();
+    return allTracks;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} track`;
+  findOne(id: string) {
+    const track = this.db.findOneTrack(id);
+    if (!track) {
+      throw new NotFoundException(TrackConstants.NOT_FOUND_MESSAGE);
+    }
+    return track;
   }
 
-  update(id: number, updateTrackDto: UpdateTrackDto) {
-    return `This action updates a #${id} track`;
+  update(id: string, updateTrackDto: UpdateTrackDto) {
+    const track = this.db.findOneTrack(id);
+    if (!track) {
+      throw new NotFoundException(TrackConstants.NOT_FOUND_MESSAGE);
+    }
+    const updatedTrack = this.db.updateTrack(id, updateTrackDto);
+    if (!updatedTrack) {
+      throw new InternalServerErrorException('something went wrong');
+    }
+    return updatedTrack;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} track`;
+  remove(id: string) {
+    const currentTrack = this.db.findOneTrack(id);
+    if (!currentTrack) {
+      throw new NotFoundException(TrackConstants.NOT_FOUND_MESSAGE);
+    }
+    try {
+      this.favsService.remove('track', id);
+    } catch (err) {}
+    const isRemoved = this.db.removeTrack(id);
+    if (!isRemoved) {
+      throw new InternalServerErrorException('something went wrong');
+    }
+    /*const isFavs = this.favsService.findOne('track', id);
+    if (isFavs) {
+      this.favsService.remove('track', id);
+    }*/
+
+    return;
+  }
+  isExist(id: string) {
+    const track = this.db.findOneTrack(id);
+    return track ? true : false;
+  }
+  removeAlbumId(albumId: string) {
+    const tracks = this.db.findAllTracks();
+    const selectedTracks = tracks.filter((track) => track.albumId === albumId);
+    selectedTracks.forEach((track) => (track.albumId = null));
+  }
+  removeArtistId(artistId: string) {
+    const tracks = this.db.findAllTracks();
+    const selectedTracks = tracks.filter(
+      (track) => track.artistId === artistId,
+    );
+    selectedTracks.forEach((track) => (track.artistId = null));
   }
 }
