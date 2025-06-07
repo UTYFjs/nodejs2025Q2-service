@@ -1,86 +1,59 @@
 import {
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  forwardRef,
 } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { DbService } from 'src/db/db.service';
-import { FavsService } from 'src/favs/favs.service';
 import { TrackConstants } from 'src/constants/constants';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TracksService {
-  constructor(
-    @Inject(forwardRef(() => FavsService))
-    private readonly favsService: FavsService,
-    private readonly db: DbService,
-  ) {}
-  create(createTrackDto: CreateTrackDto) {
-    const createdTrack = this.db.createTrack(createTrackDto);
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createTrackDto: CreateTrackDto) {
+    const createdTrack = await this.prisma.track.create({
+      data: createTrackDto,
+    });
     return createdTrack;
   }
 
-  findAll() {
-    const allTracks = this.db.findAllTracks();
+  async findAll() {
+    const allTracks = await this.prisma.track.findMany();
     return allTracks;
   }
 
-  findOne(id: string) {
-    const track = this.db.findOneTrack(id);
+  async findOne(id: string) {
+    const track = await this.prisma.track.findUnique({ where: { id: id } });
     if (!track) {
       throw new NotFoundException(TrackConstants.NOT_FOUND_MESSAGE);
     }
     return track;
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
-    const track = this.db.findOneTrack(id);
+  async update(id: string, updateTrackDto: UpdateTrackDto) {
+    const track = await this.prisma.track.findUnique({ where: { id: id } });
     if (!track) {
       throw new NotFoundException(TrackConstants.NOT_FOUND_MESSAGE);
     }
-    const updatedTrack = this.db.updateTrack(id, updateTrackDto);
+    const updatedTrack = await this.prisma.track.update({
+      where: { id: id },
+      data: updateTrackDto,
+    });
     if (!updatedTrack) {
       throw new InternalServerErrorException('something went wrong');
     }
     return updatedTrack;
   }
 
-  remove(id: string) {
-    const currentTrack = this.db.findOneTrack(id);
-    if (!currentTrack) {
+  async remove(id: string) {
+    try {
+      await this.prisma.track.delete({
+        where: { id: id },
+      });
+      return;
+    } catch {
       throw new NotFoundException(TrackConstants.NOT_FOUND_MESSAGE);
     }
-    try {
-      this.favsService.remove('track', id);
-    } catch (err) {}
-    const isRemoved = this.db.removeTrack(id);
-    if (!isRemoved) {
-      throw new InternalServerErrorException('something went wrong');
-    }
-    /*const isFavs = this.favsService.findOne('track', id);
-    if (isFavs) {
-      this.favsService.remove('track', id);
-    }*/
-
-    return;
-  }
-  isExist(id: string) {
-    const track = this.db.findOneTrack(id);
-    return track ? true : false;
-  }
-  removeAlbumId(albumId: string) {
-    const tracks = this.db.findAllTracks();
-    const selectedTracks = tracks.filter((track) => track.albumId === albumId);
-    selectedTracks.forEach((track) => (track.albumId = null));
-  }
-  removeArtistId(artistId: string) {
-    const tracks = this.db.findAllTracks();
-    const selectedTracks = tracks.filter(
-      (track) => track.artistId === artistId,
-    );
-    selectedTracks.forEach((track) => (track.artistId = null));
   }
 }

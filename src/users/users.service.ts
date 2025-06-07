@@ -7,64 +7,82 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DbService } from 'src/db/db.service';
-import { v4 as uuidv4 } from 'uuid';
 import { UserConstants } from 'src/constants/constants';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly dbService: DbService) {}
-  create(dto: CreateUserDto) {
+  // constructor(private readonly dbService: DbService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly dbService: DbService,
+  ) {}
+  async create(dto: CreateUserDto) {
     const newUser = {
-      id: uuidv4(),
       login: dto.login,
       password: dto.password,
-      version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     };
-    const createdUser = this.dbService.createUser(newUser);
-    return createdUser;
+    const createdUser = await this.prisma.user.create({ data: newUser });
+    return new User({
+      ...createdUser,
+      createdAt: createdUser.createdAt.getTime(),
+      updatedAt: createdUser.updatedAt.getTime(),
+    });
   }
 
-  findAll() {
-    return this.dbService.findAllUsers();
+  async findAll() {
+    const users = await this.prisma.user.findMany();
+    return users.map(
+      (user) =>
+        new User({
+          ...user,
+          createdAt: user.createdAt.getTime(),
+          updatedAt: user.updatedAt.getTime(),
+        }),
+    );
   }
 
-  findOne(id: string) {
-    const user = this.dbService.findOneUser(id);
+  async findOne(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: id } });
     if (!user) {
       return null;
-      //return 'Hello , no user';
     }
-    return user;
-    //return `This action returns a #${id} user`;
+    return new User({
+      ...user,
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
+    });
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    const user = this.dbService.findOneUser(id);
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: id } });
     if (!user) {
       throw new NotFoundException(UserConstants.NOT_FOUND_MESSAGE);
     }
     if (user.password !== updateUserDto.oldPassword) {
       throw new ForbiddenException(UserConstants.FORBIDDEN_MESSAGE);
     }
-    const updatedUser = this.dbService.updateUser(id, updateUserDto);
+    const updatedUser = await this.prisma.user.update({
+      data: { password: updateUserDto.newPassword, version: user.version + 1 },
+      where: { id: id },
+    });
     if (!updatedUser) {
       throw new InternalServerErrorException('somethig went wrong');
     }
-    return updatedUser;
+    return new User({
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.getTime(),
+      updatedAt: updatedUser.updatedAt.getTime(),
+    });
   }
 
-  remove(id: string) {
-    const user = this.dbService.findOneUser(id);
-    if (!user) {
+  async remove(id: string) {
+    try {
+      await this.prisma.user.delete({ where: { id: id } });
+      return;
+    } catch {
       throw new NotFoundException(UserConstants.NOT_FOUND_MESSAGE);
     }
-
-    const isRemove = this.dbService.removeUser(id);
-    if (!isRemove) {
-      throw new InternalServerErrorException('somethig went wrong');
-    }
-    return;
   }
 }

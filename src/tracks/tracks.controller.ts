@@ -43,14 +43,14 @@ export class TracksController {
     type: Track,
   })
   @ApiBody({ type: CreateTrackDto })
-  create(@Body() createTrackDto: CreateTrackDto): Track {
+  create(@Body() createTrackDto: CreateTrackDto): Promise<Track> {
     return this.tracksService.create(createTrackDto);
   }
 
   @Get()
   @ApiOperation({ summary: TrackConstants.GET_ALL_SUMMARY })
   @ApiOkResponse({ description: TrackConstants.OK_MESSAGE, type: [Track] })
-  findAll(): Track[] {
+  findAll(): Promise<Track[]> {
     return this.tracksService.findAll();
   }
 
@@ -71,7 +71,7 @@ export class TracksController {
     description: TrackConstants.BAD_REQUEST_MESSAGE,
     type: ErrorType,
   })
-  findOne(@Param('id', ParseUUIDPipe) id: string): Track {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Track> {
     return this.tracksService.findOne(id);
   }
 
@@ -90,7 +90,7 @@ export class TracksController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateTrackDto: UpdateTrackDto,
-  ): Track {
+  ): Promise<Track> {
     return this.tracksService.update(id, updateTrackDto);
   }
 
@@ -108,7 +108,7 @@ export class TracksController {
     type: ErrorType,
   })
   @HttpCode(StatusCodes.NO_CONTENT)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.tracksService.remove(id);
   }
 }

@@ -43,14 +43,14 @@ export class AlbumsController {
     type: Album,
   })
   @ApiBody({ type: CreateAlbumDto })
-  create(@Body() createAlbumDto: CreateAlbumDto): Album {
+  create(@Body() createAlbumDto: CreateAlbumDto): Promise<Album> {
     return this.albumsService.create(createAlbumDto);
   }
 
   @Get()
   @ApiOperation({ summary: AlbumConstants.GET_ALL_SUMMARY })
   @ApiOkResponse({ description: AlbumConstants.OK_MESSAGE, type: [Album] })
-  findAll(): Album[] {
+  findAll(): Promise<Album[]> {
     return this.albumsService.findAll();
   }
 
@@ -71,7 +71,7 @@ export class AlbumsController {
     description: AlbumConstants.BAD_REQUEST_MESSAGE,
     type: ErrorType,
   })
-  findOne(@Param('id', ParseUUIDPipe) id: string): Album {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Album> {
     return this.albumsService.findOne(id);
   }
 
@@ -90,7 +90,7 @@ export class AlbumsController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateAlbumDto: UpdateAlbumDto,
-  ): Album {
+  ): Promise<Album> {
     return this.albumsService.update(id, updateAlbumDto);
   }
 
@@ -109,7 +109,7 @@ export class AlbumsController {
     type: ErrorType,
   })
   @HttpCode(StatusCodes.NO_CONTENT)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.albumsService.remove(id);
   }
 }
