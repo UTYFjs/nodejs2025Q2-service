@@ -8,7 +8,6 @@ const PORT = process.env.PORT || 4000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
   //for validation
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
@@ -24,5 +23,6 @@ async function bootstrap() {
   await app.listen(PORT);
   console.log(`Server is running at http://localhost:${PORT}`);
   console.log(`Swagger docs available at http://localhost:${PORT}/doc`);
+  console.log(`The connection URL DB is ${process.env.DATABASE_URL}`);
 }
 bootstrap();
