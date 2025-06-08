@@ -6,18 +6,13 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DbService } from 'src/db/db.service';
 import { UserConstants } from 'src/constants/constants';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  // constructor(private readonly dbService: DbService) {}
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly dbService: DbService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
   async create(dto: CreateUserDto) {
     const newUser = {
       login: dto.login,

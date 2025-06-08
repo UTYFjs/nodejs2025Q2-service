@@ -1,10 +1,6 @@
 FROM node:22-alpine AS base
 
-USER node
-
 RUN apk add --no-cache openssl
-
-
 
 WORKDIR /app
 

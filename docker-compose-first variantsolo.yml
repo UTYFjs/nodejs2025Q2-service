@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:17.5-alpine3.22
+    build: ./db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    command:
+      [
+        'postgres',
+        '-c',
+        'logging_collector=on',
+        '-c',
+        'log_statement=all',
+        '-c',
+        'log_directory=/logs',
+      ]
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ./pglogs:/logs
+
+volumes:
+  pgdata:
+  logs:
