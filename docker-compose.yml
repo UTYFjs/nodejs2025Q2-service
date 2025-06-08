@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:17.5-alpine3.22
+    build: ./db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    command:
+      ['postgres', '-c', 'logging_collector=on', '-c', 'log_statement=all']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - logs:/var/lib/postgresql/logs
+    networks:
+      - backend
+
+  app:
+    # image: utyfjs/home-library:app
+    container_name: app
+    build: ./
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - .:/app/
+      - ./nestLogs:/app/nestLogs
+      - node-modules:/app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+volumes:
+  logs:
+  pgdata:
+  nestLogs:
+  app:
+  node-modules:
+
+networks:
+  backend:
+    driver: bridge
