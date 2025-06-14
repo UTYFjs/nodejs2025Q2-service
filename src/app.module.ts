@@ -8,6 +8,9 @@ import { TracksModule } from './tracks/tracks.module';
 import { UsersModule } from './users/users.module';
 import { DbModule } from './db/db.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth-guard.guard';
 
 @Module({
   imports: [
@@ -18,8 +21,15 @@ import { PrismaModule } from './prisma/prisma.module';
     UsersModule,
     DbModule,
     PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

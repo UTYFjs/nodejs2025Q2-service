@@ -48,21 +48,6 @@ start locally your Docker Engine, after this run:
 
 docker-compose -f docker-compose.yml up
 
-
-
-start only postgres container (if you have installed npm):
-- change POSTGRES_HOST=localhost in .env
-
-```
-
-docker-compose -f docker-compose-postgres.yml up
-
-```
-npm install
-npm run start:prisma
-
-```
-
 stop containers with volumes:
 
 ```
@@ -73,20 +58,35 @@ docker compose down -v
 
 After starting the app on port (4000 as default) you can open in your browser OpenAPI documentation by typing http://localhost:4000/doc/. For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
+
+# Start only postgres container:
+
+```
+
+docker compose -f docker-compose-postgres.yml up
+
+```
+
 Also:
 
 watch all containers:
 
 ```
+
 docker ps
+
 ```
 
 Run script inside container:
 
 ```
+
 docker exec -it {container_id} sh
-# writ for example inside the container:
+
+# write for example inside the container:
+
 npm run some-script
+
 ```
 
 ## If you have installed npm :
@@ -105,6 +105,22 @@ dev mode
 ```
 
 npm run start:dev
+
+```
+
+
+additional docker + npm :
+
+start only postgres container (if you have installed npm):
+- change POSTGRES_HOST=localhost in .env
+
+```
+
+docker-compose -f docker-compose-postgres.yml up
+
+```
+npm install
+npm run start:prisma
 
 ```
 
