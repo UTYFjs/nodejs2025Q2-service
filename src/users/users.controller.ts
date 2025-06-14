@@ -97,6 +97,6 @@ export class UsersController {
   @ApiBadRequestResponse({ description: UserConstants.BAD_REQUEST_MESSAGE })
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    this.usersService.remove(id);
+    return this.usersService.remove(id);
   }
 }

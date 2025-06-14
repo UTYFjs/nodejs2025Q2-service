@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
@@ -17,7 +21,7 @@ export class AuthService {
   ) {}
   async signup(userDto: CreateUserDto) {
     const user = await this.userService.create(userDto);
-    console.log('user', user);
+
     return user;
   }
 
@@ -25,7 +29,12 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       where: { login: userDto.login },
     });
+    if (!user) {
+      throw new NotFoundException(UserConstants.NOT_FOUND_MESSAGE);
+    }
+
     const isPasswordEqual = await compare(userDto.password, user.password);
+
     if (user && isPasswordEqual) {
       const token = await this.generateToken(user.id, userDto.login);
       return token;

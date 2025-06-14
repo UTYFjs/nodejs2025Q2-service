@@ -5,7 +5,7 @@ services:
     container_name: postgres
     image: postgres:17.5-alpine3.22
     build: ./db
-    restart: always
+    restart: on-failure
     env_file:
       - .env
     ports:
@@ -22,7 +22,7 @@ services:
     # image: utyfjs/home-library:app
     container_name: app
     build: ./
-    restart: always
+    restart: on-failure
     env_file:
       - .env
     ports:
