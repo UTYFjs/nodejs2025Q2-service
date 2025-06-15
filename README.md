@@ -16,14 +16,14 @@ git clone {repository URL}
 1. clone this repository
 
 ```
-git clone https://github.com/UTYFjs/nodejs2023Q2-service.git
+git clone https://github.com/UTYFjs/nodejs2025Q2-service.git
 
 ```
 
-2. Move to Task2 branch
+2. Move to Task3 branch
 
 ```
-git checkout Task2
+git checkout Task3
 ```
 
 3. Copy `.env.example` file in root of the project and rename to `.env`
@@ -32,14 +32,6 @@ git checkout Task2
 
 ```
 npm install
-
-
-## Installing NPM modules
-
-```
-
-npm install
-
 ```
 
 ## Running application
@@ -57,7 +49,6 @@ docker compose down -v
 ```
 
 After starting the app on port (4000 as default) you can open in your browser OpenAPI documentation by typing http://localhost:4000/doc/. For more information about OpenAPI/Swagger please visit https://swagger.io/.
-
 
 # Start only postgres container:
 
@@ -108,10 +99,10 @@ npm run start:dev
 
 ```
 
-
 additional docker + npm :
 
 start only postgres container (if you have installed npm):
+
 - change POSTGRES_HOST=localhost in .env
 
 ```
@@ -119,6 +110,7 @@ start only postgres container (if you have installed npm):
 docker-compose -f docker-compose-postgres.yml up
 
 ```
+
 npm install
 npm run start:prisma
 
@@ -183,6 +175,8 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+```
 
 ```
 
